@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.Api import routes
-from db import session, base, models
-from core.logging import configure_logging, get_logger
+from .db import session, base, models
+from .core.logging import configure_logging, get_logger
 import os
 
 # Configurar logging no startup
