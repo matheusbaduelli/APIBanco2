@@ -1,15 +1,8 @@
-from unittest.mock import MagicMock, patch, AsyncMock,ANY
+from unittest.mock import MagicMock, patch,ANY
 from fastapi.testclient import TestClient
-from app.main import app  # seu FastAPI app
-import pytest
+from app.main import app  
 from datetime import datetime, date
-from app.Api.schemas import StrategyType
-from sqlalchemy.orm import Session
-import pandas as pd
-import numpy as np
-from app.db.session import get_db
-from app.db import models
-from app.services.yfinance_client import download_and_store_data
+
 
 client = TestClient(app)
 
