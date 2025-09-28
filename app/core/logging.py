@@ -34,4 +34,9 @@ def configure_logging() -> None:
         cache_logger_on_first_use=True,
     )
 
+def get_logger(name: str):
+    """Função para obter logger estruturado"""
+    return structlog.get_logger(name)
+
+# Configurar logging automaticamente na importação
 configure_logging()
