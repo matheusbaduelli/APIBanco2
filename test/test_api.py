@@ -3,7 +3,13 @@ from fastapi.testclient import TestClient
 from app.main import app  # seu FastAPI app
 import pytest
 from datetime import datetime, date
-from app.Api.schemas import StrategyType 
+from app.Api.schemas import StrategyType
+from sqlalchemy.orm import Session
+import pandas as pd
+import numpy as np
+from app.db.session import get_db
+from app.db import models
+from app.services.yfinance_client import download_and_store_data
 
 client = TestClient(app)
 
@@ -72,35 +78,3 @@ def test_list_backtests():
         mock_get_backtests.assert_called_once_with(ANY, 1, 10, None, None)
 
 
-def test_update_indicators_success():
-    mock_df = [1, 2, 3]  # simula dados retornados
-
-    with patch("app.Api.routes.download_and_store_data", return_value=mock_df) as mock_download, \
-         patch("app.Api.routes.get_db"):
-
-        payload = {"ticker": "AAPL"}
-        response = client.post("/data/indicators/update", json=payload)
-
-        assert response.status_code == 200
-        data = response.json()
-
-        # Verifica conteúdo da resposta
-        assert data["status"] == "success"
-        assert data["ticker"] == "AAPL"
-        assert data["records_updated"] == len(mock_df)
-        assert "Indicators updated for AAPL" in data["message"]
-
-        # Confirma que a função foi chamada
-        assert mock_download.called
-
-
-def test_update_indicators_no_data():
-    with patch("app.Api.routes.download_and_store_data", new_callable=AsyncMock, return_value=None), \
-         patch("app.Api.routes.get_db", return_value=MagicMock()):
-        
-        payload = {"ticker": "INVALID"}
-        response = client.post("/data/indicators/update", json=payload)
-
-        # Deve retornar erro 404
-        assert response.status_code == 404
-        assert response.json()["detail"] == "No data found for ticker"

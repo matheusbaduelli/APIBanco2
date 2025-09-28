@@ -1,36 +1,38 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.Api import routes
-from .db import session, base, models
-from .core.logging import configure_logging, get_logger
-import os
+from app.db import base
+from app.core.logging import configure_logging, get_logger
 
 # Configurar logging no startup
 configure_logging()
 logger = get_logger("main")
 
-app = FastAPI(
-    title="Trading Backtest API",
-    description="API para backtests de estratégias de trend following",
-    version="1.0.0"
-)
-
-app.include_router(routes.router)
-
-@app.on_event("startup")
-def startup():
-    """Inicializar aplicação"""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Gerenciar ciclo de vida da aplicação"""
+    # Startup
     logger.info("Starting Trading Backtest API")
     
     try:
         # Criar tabelas do banco
-        base.Base.metadata.create_all(bind=session.engine)
+        base.Base.metadata.create_all(bind=base.engine)
         logger.info("Database tables created successfully")
         
     except Exception as e:
         logger.error("Failed to create database tables", error=str(e))
         raise
-
-@app.on_event("shutdown") 
-def shutdown():
-    """Finalizar aplicação"""
+    
+    yield
+    
+    # Shutdown
     logger.info("Shutting down Trading Backtest API")
+
+app = FastAPI(
+    title="Trading Backtest API",
+    description="API para backtests de estratégias de trend following",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+app.include_router(routes.router)
